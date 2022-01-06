@@ -11,7 +11,7 @@ using Discord.WebSocket;
 using Discord.Interactions;
 using DiscordBot.Models;
 
-namespace ExampleBot
+namespace DiscordBot
 {
     class Program
     {
