@@ -10,6 +10,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Discord.Interactions;
 using DiscordBot.Models;
+using DiscordBot.Controllers;
 
 namespace DiscordBot
 {
@@ -45,6 +46,7 @@ namespace DiscordBot
             _services = new ServiceCollection() // Define _services
                 .AddSingleton(_client)
                 .AddSingleton(_interactionService)
+                .AddSingleton(GameSaveController.CreateAsync())
                 .BuildServiceProvider();
 
             _client.Log += Log; // Logging

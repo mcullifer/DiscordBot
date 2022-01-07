@@ -6,6 +6,7 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using DiscordBot.Attributes;
+using DiscordBot.Controllers;
 
 namespace DiscordBot.Modules
 {
@@ -57,7 +58,6 @@ namespace DiscordBot.Modules
                 {
                     description += $"- {key} As {playerdict[key]}\n";
                 }
-
                 
                 var embedBuiler = new EmbedBuilder() // Build embed
                     .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())
@@ -65,6 +65,12 @@ namespace DiscordBot.Modules
                     .WithDescription(description)
                     .WithColor(Color.Blue)
                     .WithCurrentTimestamp();
+                
+                var saveController = await GameSaveController.CreateAsync(); // Get GameController
+
+                var newSave = GameSaveController.BuildSave(playerdict, saveName, Context.Interaction.CreatedAt); // Create save
+
+                await saveController.AddGameSave(newSave); // Write save to disk
 
                 // Respond with embed
                 await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuiler.Build());
