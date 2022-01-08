@@ -14,10 +14,12 @@ namespace DiscordBot.Modules
     {
         public DiscordSocketClient Client { get; set; }
         public InteractionService InteractionService { get; set; }
-        public SlashCommands(DiscordSocketClient client, InteractionService interactionService)
+        public GameSaveController GameSave { get; set; }
+        public SlashCommands(DiscordSocketClient client, InteractionService interactionService, GameSaveController gameSave)
         {
             Client = client;
             InteractionService = interactionService;
+            GameSave = gameSave;
         }
 
         [SlashCommand("create-save", "Create a new CK save file", runMode: Discord.Interactions.RunMode.Async)]        
@@ -64,14 +66,11 @@ namespace DiscordBot.Modules
                     .WithTitle($"- New CK3 Save -\n{saveName}")
                     .WithDescription(description)
                     .WithColor(Color.Blue)
-                    .WithCurrentTimestamp();
+                    .WithCurrentTimestamp();               
                 
-                var saveController = await GameSaveController.CreateAsync(); // Get GameController
-
                 var newSave = GameSaveController.BuildSave(playerdict, saveName, Context.Interaction.CreatedAt); // Create save
 
-                await saveController.AddGameSave(newSave); // Write save to disk
-
+                await GameSave.AddGameSave(newSave); // Write save to disk
                 // Respond with embed
                 await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuiler.Build());
             }

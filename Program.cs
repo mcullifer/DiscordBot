@@ -46,7 +46,7 @@ namespace DiscordBot
             _services = new ServiceCollection() // Define _services
                 .AddSingleton(_client)
                 .AddSingleton(_interactionService)
-                .AddSingleton(GameSaveController.CreateAsync())
+                .AddTransient(typeof(GameSaveController))
                 .BuildServiceProvider();
 
             _client.Log += Log; // Logging

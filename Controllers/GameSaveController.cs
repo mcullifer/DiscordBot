@@ -9,26 +9,20 @@ namespace DiscordBot.Controllers
 {
     public class GameSaveController
     {
-        private GameSaveRootObject _gameSaveListModel;
+        private readonly GameSaveRootObject _gameSaveListModel;
+
         private readonly string fileName = Directory.GetCurrentDirectory() + "\\GameSaves.json";
 
-        public static Task<GameSaveController> CreateAsync()
-        {
-            var inst = new GameSaveController();
-            return inst.InitializeAsync();
-        }
-
-        private async Task<GameSaveController> InitializeAsync()
+        public GameSaveController()
         {
             if (!File.Exists(fileName))
             {
                 _gameSaveListModel = new GameSaveRootObject();
-                return this;
+                return;
             }
             using FileStream fileStream = File.OpenRead(fileName);
-            _gameSaveListModel = await JsonSerializer.DeserializeAsync<GameSaveRootObject>(fileStream);
-            await fileStream.DisposeAsync();
-            return this;
+            _gameSaveListModel = JsonSerializer.Deserialize<GameSaveRootObject>(fileStream);
+            fileStream.Dispose();
         }
 
         public static SaveModel BuildSave(Dictionary<string, string> playerdict, string savename, DateTimeOffset savedate)
