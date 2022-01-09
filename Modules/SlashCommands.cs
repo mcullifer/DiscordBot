@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
 using DiscordBot.Attributes;
 using DiscordBot.Controllers;
 
@@ -12,17 +11,13 @@ namespace DiscordBot.Modules
 {
     public class SlashCommands : InteractionModuleBase<SocketInteractionContext>
     {
-        public DiscordSocketClient Client { get; set; }
-        public InteractionService InteractionService { get; set; }
-        public GameSaveController GameSave { get; set; }
-        public SlashCommands(DiscordSocketClient client, InteractionService interactionService, GameSaveController gameSave)
+        private readonly GameSaveController _gameSaveController;
+        public SlashCommands(GameSaveController gameSaveController)
         {
-            Client = client;
-            InteractionService = interactionService;
-            GameSave = gameSave;
+            _gameSaveController = gameSaveController;
         }
 
-        [SlashCommand("create-save", "Create a new CK save file", runMode: Discord.Interactions.RunMode.Async)]        
+        [SlashCommand("create-save", "Create a new CK save file")]        
         public async Task CreateSave(
             [Summary(description: "Name of the save")] string saveName, 
             [Summary(description: "Player names comma separated")] string players, 
@@ -39,13 +34,13 @@ namespace DiscordBot.Modules
 
                 if (playersList.Count != countriesList.Count)
                 {
-                    await Context.Interaction.RespondAsync("You must have the same number of countries as players");
+                    await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Content = "You must have the same number of countries as players");
                     return;
                 }
 
                 if (playersList[0].Length > 75 | countriesList[0].Length > 75)
                 {
-                    await Context.Interaction.RespondAsync("Stop trolling");
+                    await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Content = "Stop trolling");
                     return;
                 }
                 
@@ -70,7 +65,7 @@ namespace DiscordBot.Modules
                 
                 var newSave = GameSaveController.BuildSave(playerdict, saveName, Context.Interaction.CreatedAt); // Create save
 
-                await GameSave.AddGameSave(newSave); // Write save to disk
+                await _gameSaveController.AddGameSave(newSave); // Write save to disk
                 // Respond with embed
                 await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuiler.Build());
             }
