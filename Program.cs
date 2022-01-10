@@ -17,15 +17,18 @@ namespace DiscordBot
         static Task Main(string[] args) => new Program().RunBot();
         
         // Creating the necessary variables
-        private DiscordSocketClient _client;
-        private IServiceProvider _services;
+        private DiscordSocketClient _client;        
         private InteractionService _interactionService;
         private LoggingService _loggingService;
-        private ConfigModel config;
+        private ConfigModel _config;
+        private IServiceProvider _services;
 
         // Runbot task
         public async Task RunBot()
         {
+            // Read config.json into ConfigModel object
+            _config = JsonSerializer.Deserialize<ConfigModel>(File.ReadAllText("config.json"));
+
             var socketConfig = new DiscordSocketConfig() // Set up socket config
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged,
@@ -37,7 +40,7 @@ namespace DiscordBot
                 DefaultRunMode = Discord.Interactions.RunMode.Async,
                 UseCompiledLambda = true
             };
-
+            
             _client = new DiscordSocketClient(socketConfig); // Define _client
             _interactionService = new InteractionService(_client, interactionConfig); // Define _interactionService
             _loggingService = new LoggingService(_client, _interactionService); // Define _loggingService
@@ -45,50 +48,22 @@ namespace DiscordBot
                 .AddSingleton(_client)
                 .AddSingleton(_interactionService)
                 .AddSingleton(_loggingService)
+                .AddSingleton(_config)
                 .AddSingleton<InteractionHandler>()
+                .AddSingleton<ClientController>()
                 .AddTransient<GameSaveController>()
                 .BuildServiceProvider();
-
-            // Read config.json into ConfigModel object
-            config = JsonSerializer.Deserialize<ConfigModel>(File.ReadAllText("config.json"));
             
             try
-            {
-                await _services.GetService<InteractionHandler>().InitializeAsync();              
-                await _client.LoginAsync(TokenType.Bot, config.Token); // Log into the bot user
-                await _client.StartAsync(); // Start the bot user
-                await _client.SetGameAsync(config.Game); // Set the game the bot is playing
-                _client.Ready += Client_Ready;
+            { // Initialize handlers
+                await _services.GetService<InteractionHandler>().InitializeAsync();
+                await _services.GetService<ClientController>().InitializeAsync();
                 await Task.Delay(-1); // Delay for -1 to keep the console window opened
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }         
-        }
-
-        public async Task Client_Ready()
-        {
-            try
-            {
-#if DEBUG
-                //await _interactionService.RegisterCommandsToGuildAsync(config.GuildID); // Call RegisterInteractionCommands
-                await _interactionService.RegisterCommandsGloballyAsync(true);
-#else
-                var guildCommands = Array.Empty<ApplicationCommandProperties>();
-                await _client.Rest.BulkOverwriteGuildCommands(guildCommands, config.guildID);     
-#endif
-            }
-            catch (HttpException exception)
-            {
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                };
-                var json = JsonSerializer.Serialize(exception.Errors, jsonOptions);
-                Console.WriteLine("ERROR REGISTERING COMMAND:");
-                Console.WriteLine(json);
-            }
-        }    
+        }  
     }
 }
