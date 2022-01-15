@@ -56,8 +56,8 @@ namespace DiscordBot
             try
             { // Initialize handlers
                 using IServiceScope scope = _services.CreateScope();
-                await _services.GetRequiredService<InteractionHandler>().InitializeAsync();
-                await _services.GetRequiredService<ClientController>().InitializeAsync();
+                await scope.ServiceProvider.GetRequiredService<InteractionHandler>().InitializeAsync();
+                await scope.ServiceProvider.GetRequiredService<ClientController>().InitializeAsync();
                 await Task.Delay(-1); // Delay for -1 to keep the console window opened
             }
             catch (Exception ex)

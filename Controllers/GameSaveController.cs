@@ -22,7 +22,6 @@ namespace DiscordBot.Controllers
             }
             using FileStream fileStream = File.OpenRead(fileName);
             _gameSaveListModel = JsonSerializer.Deserialize<GameSaveRootObject>(fileStream);
-            fileStream.Dispose();
         }
 
         public static SaveModel BuildSave(Dictionary<string, string> playerdict, string savename, DateTimeOffset savedate)
