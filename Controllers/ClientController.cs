@@ -6,6 +6,8 @@ using Discord.Net;
 using Discord.Interactions;
 using Discord.WebSocket;
 using DiscordBot.Models;
+using DiscordBot.Modules;
+using System.Collections.Generic;
 
 namespace DiscordBot.Controllers
 {
@@ -26,7 +28,7 @@ namespace DiscordBot.Controllers
         {
             await _client.LoginAsync(TokenType.Bot, _config.Token); // Log into the bot user
             await _client.StartAsync(); // Start the bot user
-            await _client.SetGameAsync(_config.Game); // Set the game the bot is playing
+            await _client.SetGameAsync(_config.Game, null, ActivityType.Competing); // Set the game the bot is playing
             _client.Ready += Client_Ready;
         }
 
@@ -35,11 +37,9 @@ namespace DiscordBot.Controllers
             try
             {
 #if DEBUG
-                //await _interactionService.RegisterCommandsToGuildAsync(config.GuildID); // Call RegisterInteractionCommands
-                await _interactionService.RegisterCommandsGloballyAsync(true);
+                await _interactionService.RegisterCommandsToGuildAsync(_config.GuildID, true); // Call RegisterInteractionCommands            
 #else
-                var guildCommands = Array.Empty<ApplicationCommandProperties>();
-                await _client.Rest.BulkOverwriteGuildCommands(guildCommands, config.guildID);     
+                await _interactionService.RegisterCommandsGloballyAsync(true);
 #endif
             }
             catch (HttpException exception)

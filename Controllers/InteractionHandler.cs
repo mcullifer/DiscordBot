@@ -21,12 +21,16 @@ namespace DiscordBot.Controllers
 
 		public async Task InitializeAsync()
 		{
-			await _interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), _services); // Add module to _interactionService
-			_client.InteractionCreated += async x =>
-			{
-				var context = new SocketInteractionContext(_client, x);
-				await _interactionService.ExecuteCommandAsync(context, _services);
-			};
+            _client.InteractionCreated += HandleInteraction;
+
+            await _interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), _services); // Add module to _interactionService
+			
 		}
-	}
+
+        public async Task HandleInteraction(SocketInteraction interaction)
+        {
+            var context = new SocketInteractionContext(_client, interaction);
+            await _interactionService.ExecuteCommandAsync(context, _services);
+        }
+    }
 }

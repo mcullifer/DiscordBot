@@ -37,8 +37,7 @@ namespace DiscordBot
 
             var interactionConfig = new InteractionServiceConfig() // Set up interaction service config
             {
-                DefaultRunMode = Discord.Interactions.RunMode.Async,
-                UseCompiledLambda = true
+                DefaultRunMode = Discord.Interactions.RunMode.Async
             };
             
             _client = new DiscordSocketClient(socketConfig); // Define _client
@@ -56,8 +55,9 @@ namespace DiscordBot
             
             try
             { // Initialize handlers
-                await _services.GetService<InteractionHandler>().InitializeAsync();
-                await _services.GetService<ClientController>().InitializeAsync();
+                using IServiceScope scope = _services.CreateScope();
+                await _services.GetRequiredService<InteractionHandler>().InitializeAsync();
+                await _services.GetRequiredService<ClientController>().InitializeAsync();
                 await Task.Delay(-1); // Delay for -1 to keep the console window opened
             }
             catch (Exception ex)
