@@ -9,7 +9,7 @@ namespace DiscordBot.Controllers
 {
     public class GameSaveController
     {
-        private readonly GameSaveRootObject _gameSaveListModel;
+        private GameSaveRootObject _gameSaveListModel;
 
         private readonly string fileName = Directory.GetCurrentDirectory() + "\\GameSaves.json";
 
@@ -55,6 +55,17 @@ namespace DiscordBot.Controllers
             };
             await JsonSerializer.SerializeAsync(fileStream, _gameSaveListModel, jsonOptions);
             await fileStream.DisposeAsync();            
+        }
+
+        public async Task<GameSaveRootObject> GetGameSaves()
+        {
+            if (!(_gameSaveListModel.Saves.Count == 0))
+            {
+                return _gameSaveListModel;
+            }
+            using FileStream fileStream = File.OpenRead(fileName);
+            _gameSaveListModel = await JsonSerializer.DeserializeAsync<GameSaveRootObject>(fileStream);
+            return _gameSaveListModel;
         }
     }
 }

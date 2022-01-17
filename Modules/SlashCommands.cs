@@ -6,6 +6,7 @@ using Discord;
 using Discord.Interactions;
 using DiscordBot.Attributes;
 using DiscordBot.Controllers;
+using DiscordBot.Models;
 
 namespace DiscordBot.Modules
 {
@@ -56,7 +57,7 @@ namespace DiscordBot.Modules
                     description += $"- {key} As {playerdict[key]}\n";
                 }
                 
-                var embedBuiler = new EmbedBuilder() // Build embed
+                var embedBuilder = new EmbedBuilder() // Build embed
                     .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())
                     .WithTitle($"- New CK3 Save -\n{saveName}")
                     .WithDescription(description)
@@ -67,7 +68,51 @@ namespace DiscordBot.Modules
 
                 await _gameSaveController.AddGameSave(newSave); // Write save to disk
                 // Respond with embed
-                await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuiler.Build());
+                await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuilder.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        [SlashCommand("find-save", "Find a CK save file")]
+        public async Task FindSave([Summary(description: "Name of the save host")] string hostName)
+        {
+            try
+            {
+                await Context.Interaction.DeferAsync();
+                var guildUser = Context.User;
+                var gameSaves = await _gameSaveController.GetGameSaves(); // Get list of saves
+                IEnumerable<SaveModel> foundSaves = gameSaves.Saves.Where((save) => save.Players[0].Name.ToLower() == hostName.ToLower()); // Select saves that match hostName
+
+                if (!foundSaves.Any()) // Exit if no saves exist
+                {
+                    await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Content = $"No saves found with host: {hostName}");
+                    return;
+                }
+
+                var title = foundSaves.Count() == 1 ? $"{foundSaves.Count()} Save Found With Host: {hostName}" : $"{foundSaves.Count()} Saves Found With Host: {hostName}"; // Select title
+
+                var description = string.Empty;
+                foreach (var save in foundSaves) // Build save dictionary
+                {
+                    description += $"{save.SaveName}:\n";
+                    foreach (var player in save.Players)
+                    {
+                        description += $"- {player.Name} As {player.Country}\n";
+                    }
+                    description += "\n";
+                }
+
+                var embedBuilder = new EmbedBuilder() // Build embed
+                    .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())
+                    .WithTitle(title)
+                    .WithDescription(description)
+                    .WithColor(Color.Green)
+                    .WithCurrentTimestamp();
+
+                await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Embed = embedBuilder.Build());
             }
             catch (Exception ex)
             {

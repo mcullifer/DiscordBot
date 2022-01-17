@@ -52,9 +52,9 @@ namespace DiscordBot
                 .AddSingleton<ClientController>()
                 .AddTransient<GameSaveController>()
                 .BuildServiceProvider();
-            
-            try
-            { // Initialize handlers
+
+            try // Initialize handlers
+            { 
                 using IServiceScope scope = _services.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<InteractionHandler>().InitializeAsync();
                 await scope.ServiceProvider.GetRequiredService<ClientController>().InitializeAsync();
