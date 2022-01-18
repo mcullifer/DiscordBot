@@ -91,9 +91,9 @@ namespace DiscordBot.Modules
                     await Context.Interaction.ModifyOriginalResponseAsync((message) => message.Content = $"No saves found with host: {hostName}");
                     return;
                 }
-
+                
                 var title = foundSaves.Count() == 1 ? $"{foundSaves.Count()} Save Found With Host: {hostName}" : $"{foundSaves.Count()} Saves Found With Host: {hostName}"; // Select title
-
+                
                 var description = string.Empty;
                 foreach (var save in foundSaves) // Build save dictionary
                 {
@@ -104,7 +104,7 @@ namespace DiscordBot.Modules
                     }
                     description += "\n";
                 }
-
+                
                 var embedBuilder = new EmbedBuilder() // Build embed
                     .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())
                     .WithTitle(title)
